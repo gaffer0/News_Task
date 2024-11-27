@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using News.Application.DTOs;
 using News.Domain.Entities;
 using News.Domain.Repositories;
-using System.Text.Json;
 
 namespace News_Task.API.Controllers
 {
@@ -23,7 +21,7 @@ namespace News_Task.API.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            
+
             var newsList = _unitOfWork.News.GetAll(query => query
                 .Include(n => n.Image)
                 .Include(n => n.Translations));
@@ -31,7 +29,7 @@ namespace News_Task.API.Controllers
             if (newsList == null || !newsList.Any())
                 return NotFound();
 
-           
+
             var response = newsList.Select(news => new
             {
                 news.NewId,
@@ -48,12 +46,12 @@ namespace News_Task.API.Controllers
                     t.Language2Title,
                     t.Language2Content
                 }),
-                
+
                 Images = news.Image.Select(image => new
                 {
-                    ImagePath = image.ImagePath 
-                }).ToList() 
-            }).ToList(); 
+                    ImagePath = image.ImagePath
+                }).ToList()
+            }).ToList();
 
             return Ok(response);
         }
@@ -70,11 +68,11 @@ namespace News_Task.API.Controllers
             if (news == null)
                 return NotFound();
 
-            
+
             var imagePaths = news.Image.Select(image =>
             {
                 var filePath = image.ImagePath;
-               
+
                 return new
                 {
                     ImagePath = filePath
@@ -97,7 +95,7 @@ namespace News_Task.API.Controllers
                     t.Language2Title,
                     t.Language2Content
                 }),
-                Images = imagePaths 
+                Images = imagePaths
             };
 
             return Ok(response);
@@ -146,10 +144,10 @@ namespace News_Task.API.Controllers
 
             news.Translations.Add(new NewTranslation
             {
-                Language1=newsDTO.Language1,
+                Language1 = newsDTO.Language1,
                 Language1Title = newsDTO.Translation1Title,
                 Language1Content = newsDTO.Translation1Content,
-                Language2= newsDTO.Language2,
+                Language2 = newsDTO.Language2,
                 Language2Title = newsDTO.Translation2Title,
                 Language2Content = newsDTO.Translation2Content
             });
@@ -174,7 +172,7 @@ namespace News_Task.API.Controllers
             if (newsDTO == null)
                 return BadRequest("News data cannot be null.");
 
-            
+
             var existingNews = _unitOfWork.News.Get(id, query => query
                 .Include(n => n.Image)
                 .Include(n => n.Translations));
@@ -182,13 +180,13 @@ namespace News_Task.API.Controllers
             if (existingNews == null)
                 return NotFound("News not found.");
 
-           
+
             existingNews.Title = newsDTO.Title;
             existingNews.Content = newsDTO.Content;
             existingNews.CreatedDate = newsDTO.CreatedDate;
             existingNews.IsFeatured = newsDTO.IsFeatured;
 
-           
+
             var rootPath = Directory.GetCurrentDirectory();
             var uploadPath = Path.Combine(rootPath, "Uploads");
             if (!Directory.Exists(uploadPath))
@@ -196,14 +194,14 @@ namespace News_Task.API.Controllers
                 Directory.CreateDirectory(uploadPath);
             }
 
-           
+
             if (newsDTO.Image != null && newsDTO.Image.Any())
             {
 
-                
+
                 existingNews.Image.Clear();
 
-               
+
                 foreach (var imageFile in newsDTO.Image)
                 {
                     if (imageFile.Length > 0)
@@ -221,7 +219,7 @@ namespace News_Task.API.Controllers
                 }
             }
 
-           
+
             var existingTranslation = existingNews.Translations.FirstOrDefault();
             if (existingTranslation != null)
             {
@@ -234,7 +232,7 @@ namespace News_Task.API.Controllers
             }
             else
             {
-               
+
                 existingNews.Translations.Add(new NewTranslation
                 {
                     Language1 = newsDTO.Language1,
@@ -246,7 +244,7 @@ namespace News_Task.API.Controllers
                 });
             }
 
-            
+
             try
             {
                 _unitOfWork.News.Update(existingNews);
@@ -265,19 +263,19 @@ namespace News_Task.API.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-           
+
             var newsItem = _unitOfWork.News.Get(id);
 
-            
+
             if (newsItem == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
 
             try
             {
                 _unitOfWork.News.Remove(newsItem);
-                _unitOfWork.Complete(); 
+                _unitOfWork.Complete();
             }
             catch (Exception ex)
             {
@@ -289,5 +287,16 @@ namespace News_Task.API.Controllers
 
 
 
+
+
+
+
     }
+
+
+
+
+
+
+
 }

@@ -1,12 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using News.Domain.Repositories;
 using News.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace News.Infrastructure.Implementation
 {
@@ -21,7 +15,7 @@ namespace News.Infrastructure.Implementation
         }
         public void Add(T entity)
         {
-            _dbSet.Add(entity); 
+            _dbSet.Add(entity);
         }
         public IEnumerable<T> GetAll(Func<IQueryable<T>, IQueryable<T>>? include = null)
         {
@@ -44,15 +38,15 @@ namespace News.Infrastructure.Implementation
                 query = include(query);
             }
 
-            return query.FirstOrDefault(e => EF.Property<int>(e, "NewId") == id); 
+            return query.FirstOrDefault(e => EF.Property<int>(e, "NewId") == id);
         }
 
 
         public void Remove(T entity)
-            {
-                _dbSet.Remove(entity);
-            }
-
+        {
+            _dbSet.Remove(entity);
         }
+
     }
+}
 

@@ -1,41 +1,44 @@
+using System.Text.Json.Serialization;
+using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using News.Domain.Repositories;
 using News.Infrastructure.Data;
 using News.Infrastructure.Implementation;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Prevent cyclic references in JSON serialization
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Register FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<NewValidator>();
+
+// Register MediatR and ValidationBehavior
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+
+// Register Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Register DbContext
 builder.Services.AddDbContext<NewsDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
 });
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork >();
+// Register Repositories and UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<INewsRepository, NewRepositories>();
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    });
-
-
-builder.Services.AddControllers()
-        .AddJsonOptions(options =>
-        {
-            // Ignore metadata properties
-            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        });
-
-
+// Build the application
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -46,9 +49,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
+// Start the application
+app.Run();
 app.Run();
